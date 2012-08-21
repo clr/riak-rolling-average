@@ -1,6 +1,9 @@
 # Riak Rolling Average Example
 
-The mHealth API Server provides a common API to applications based on the AT&T Developer Center (ForHealth) platform.  The API Server sits in front of a Riak Database (within Silver Lining), and works in conjuction with the application and user profile information managed within the mHealth middleware application.
+Provide an example of using vector clocks and a rolling average
+algorithm to track the average of values in Ripple documents.
+
+Requires a test Riak node to be running. Memory backend recommended.
 
 ## Steps in our example
 
