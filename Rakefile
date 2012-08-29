@@ -40,17 +40,15 @@ end
 task :default => :test
 
 namespace(:example) do
-  100.times do |time|
-    task("create_data_points_#{time}".to_sym) do
-      require File.join(ROOT_DIR,'lib','riak_rolling_average')
+  task :create_data_points do
+    require File.join(ROOT_DIR,'lib','riak_rolling_average')
 
-      data = File.readlines(File.join(ROOT_DIR,'test','data'))[time]
-      count = 0
-      data.split(',').each do |value|
-        DataPointDocument.create(:value => value.to_i)
-        count += 1
-      end
-      puts count.to_s
+    data = File.readlines(File.join(ROOT_DIR,'test','data'))[ENV['ROW'].to_i]
+    count = 0
+    data.split(',').each do |value|
+      DataPointDocument.create(:value => value.to_i)
+      count += 1
     end
+    puts count.to_s
   end
 end

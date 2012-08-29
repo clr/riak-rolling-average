@@ -6,9 +6,9 @@ class TestExample < Test::Unit::TestCase
     start_time = Time.now
 
     # start some external clients to add values to the Riak server
-    2.times do |t|
+    5.times do |t|
       pids << fork {
-        `bundle exec rake example:create_data_points_#{t} --trace`
+        `bundle exec rake example:create_data_points ROW=#{t} CLIENT=local#{t}`
       }
     end
     pids.each do |pid|
@@ -19,8 +19,7 @@ class TestExample < Test::Unit::TestCase
 
   def test_concurrent_average
     statistic = StatisticDocument.find('data_point_document_statistic')
-    assert_equal 2000,    statistic.count
-    assert_equal 49.46, statistic.average
-#    assert_equal 49.6724, statistic.average
+    assert_equal 5000,  statistic.count
+    assert_equal 49.672, statistic.average
   end
 end

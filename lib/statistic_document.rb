@@ -2,30 +2,40 @@ require 'ripple'
 
 class StatisticDocument
   include Ripple::Document
-  property :count,         Integer, :presence => true
-  property :average,       Float,   :presence => true
-  property :prior_average, Float
+  property :client_data, Hash, :presence => true
 
   def update_with(value)
-    self.prior_average = self.average
-    self.count         = (self.count || 0) + 1
-    self.average       = ((self.count - 1) * (self.average || 0.0) + value).to_f / self.count
-    self.save
     self.reload
+    self.client_data ||= {}
+    statistic = self.client_data[Client.id] || {'average' => 0.0, 'count' => 0}
+    statistic['average'] = (statistic['average'] * statistic['count'] + value).to_f / (statistic['count'] + 1)
+    statistic['count']   = (statistic['count'] + 1)
+    self.client_data[Client.id] = statistic
+    self.save
+  end
+
+  def count
+    begin
+    self.client_data.map{|h| h[1]['count']}.inject(0, &:+)
+
+    rescue TypeError
+    raise self.client_data.map{|h| h[1]['count']}.inspect
+    end
+  end
+
+  def average
+    self.client_data.map{|h| h[1]['count'] * h[1]['average']}.inject(0, &:+).to_f / self.count
   end
 
   on_conflict do |siblings, c|
-    siblings.reject!{|s| s.count == nil || s.average == nil}
-
-    floor = siblings.map(&:count).min - 1
-    if floor > 0 && (prior_average = siblings.detect{|s| s.count == (floor + 1)}.prior_average)
-      floor_average = floor * prior_average
-    else
-      floor_average = 0
+    resolved = {}
+    siblings.reject!{|s| s.client_data == nil}
+    siblings.each do |sibling|
+      resolved.merge! sibling.client_data do |client_id, resolved_value, sibling_value|
+        resolved_value['count'] > sibling_value['count'] ? resolved_value : sibling_value
+      end
     end
-
-    self.count    = floor + siblings.map{|s| s.count - floor}.sum
-    self.average  = (floor_average + (siblings.map{|s| s.average * s.count - floor_average}.sum)) / self.count
+    self.client_data = resolved
   end
 end
 

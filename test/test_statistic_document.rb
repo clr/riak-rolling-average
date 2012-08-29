@@ -36,7 +36,7 @@ class TestStatisticDocument < Test::Unit::TestCase
 
     siblings[2].update_with 7
     statistic = StatisticDocument.find(key)
-    assert_equal 3,    statistic.count
+    assert_equal 3,   statistic.count
     assert_equal 9.0, statistic.average
 
     siblings[3].update_with 13
