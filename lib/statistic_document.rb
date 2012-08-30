@@ -7,24 +7,36 @@ class StatisticDocument
   def update_with(value)
     self.reload
     self.client_data ||= {}
-    statistic = self.client_data[Client.id] || {'average' => 0.0, 'count' => 0}
-    statistic['average'] = (statistic['average'] * statistic['count'] + value).to_f / (statistic['count'] + 1)
+    statistic = self.client_data[Client.id] || {'sum' => 0, 'count' => 0}
+    statistic['sum'] = (statistic['sum'] + value).to_f
     statistic['count']   = (statistic['count'] + 1)
     self.client_data[Client.id] = statistic
     self.save
   end
 
-  def count
+  def sum
+    return 0 if self.client_data == nil
     begin
-    self.client_data.map{|h| h[1]['count']}.inject(0, &:+)
+      self.client_data.map{|h| h[1]['sum']}.inject(0, :+)
 
     rescue TypeError
-    raise self.client_data.map{|h| h[1]['count']}.inspect
+      raise self.client_data.map{|h| h[1]['sum']}.inspect
+    end
+  end
+
+  def count
+    return 0 if self.client_data == nil
+    begin
+      self.client_data.map{|h| h[1]['count']}.inject(0, :+)
+
+    rescue TypeError
+      raise self.client_data.map{|h| h[1]['count']}.inspect
     end
   end
 
   def average
-    self.client_data.map{|h| h[1]['count'] * h[1]['average']}.inject(0, &:+).to_f / self.count
+    return self.sum / self.count unless self.count == 0
+    return 0
   end
 
   on_conflict do |siblings, c|
