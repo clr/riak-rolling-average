@@ -1,41 +1,55 @@
 require 'ripple'
 
 class StatisticDocument
-  include Ripple::Document
-  property :client_data, Hash, :presence => true
+  attr_reader :average, :count
 
-  def update_with(value)
-    self.reload
-    self.client_data ||= {}
-    statistic = self.client_data[Client.id] || {'average' => 0.0, 'count' => 0}
-    statistic['average'] = (statistic['average'] * statistic['count'] + value).to_f / (statistic['count'] + 1)
-    statistic['count']   = (statistic['count'] + 1)
-    self.client_data[Client.id] = statistic
-    self.save
+  def initialize(bucket_name)
+    @bucket_name = bucket_name
   end
 
-  def count
-    begin
-    self.client_data.map{|h| h[1]['count']}.inject(0, &:+)
-
-    rescue TypeError
-    raise self.client_data.map{|h| h[1]['count']}.inspect
-    end
+  def compute!
+    mapred = Riak::MapReduce.new(Ripple.client)
+    mapred.add @bucket_name
+    mapred.map(map_javascript, :keep => false)
+    mapred.reduce(reduce_javascript, :keep => true)
+    results = mapred.run
+    @average = results[0][0]
+    @count   = results[0][1]
   end
 
-  def average
-    self.client_data.map{|h| h[1]['count'] * h[1]['average']}.inject(0, &:+).to_f / self.count
+  private
+  def map_javascript
+    <<-MAP
+    function(riakObject){
+      match = riakObject.values[0].data.match(/\"value\":([\\d]+)/);
+      if(match){
+        return [[parseInt(match[1]), 1]];
+      } else {
+        return [null];
+      }
+    }
+    MAP
   end
 
-  on_conflict do |siblings, c|
-    resolved = {}
-    siblings.reject!{|s| s.client_data == nil}
-    siblings.each do |sibling|
-      resolved.merge! sibling.client_data do |client_id, resolved_value, sibling_value|
-        resolved_value['count'] > sibling_value['count'] ? resolved_value : sibling_value
-      end
-    end
-    self.client_data = resolved
+  def reduce_javascript
+    <<-REDUCE
+    function(values){
+//    ejsLog('map_reduce.log', values);
+      var sum = 0.0;
+      var count = 0;
+      for(i=0; i<values.length; i++){
+        value = values[i];
+        if(value){
+          sum = sum + (value[0] * value[1]);
+          count = count + value[1];
+        }
+      }
+      if(count > 0) {
+        return [[(sum / count), count]];
+      } else {
+        return [];
+      }
+    }
+    REDUCE
   end
 end
-
