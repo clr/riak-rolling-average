@@ -49,6 +49,5 @@ namespace(:example) do
       DataPointDocument.create(:value => value.to_i)
       count += 1
     end
-    puts count.to_s
   end
 end

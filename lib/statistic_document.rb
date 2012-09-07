@@ -15,12 +15,7 @@ class StatisticDocument
   end
 
   def count
-    begin
     self.client_data.map{|h| h[1]['count']}.inject(0, &:+)
-
-    rescue TypeError
-    raise self.client_data.map{|h| h[1]['count']}.inspect
-    end
   end
 
   def average
