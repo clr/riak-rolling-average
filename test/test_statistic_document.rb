@@ -10,7 +10,7 @@ class TestStatisticDocument < Test::Unit::TestCase
     DataPointDocument.create(:value => 12)
 
     # this is an eventually consistent system after all :-)
-    sleep 2
+    sleep 5
 
     statistic = StatisticDocument.new('data_point_documents')
     statistic.compute!

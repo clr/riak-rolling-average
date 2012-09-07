@@ -34,7 +34,6 @@ class StatisticDocument
   def reduce_javascript
     <<-REDUCE
     function(values){
-//    ejsLog('map_reduce.log', values);
       var sum = 0.0;
       var count = 0;
       for(i=0; i<values.length; i++){
