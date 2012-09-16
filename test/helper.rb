@@ -9,7 +9,3 @@ require File.join(ROOT_DIR,'lib','riak_rolling_average')
 Riak.disable_list_keys_warnings = true
 StatisticDocument.destroy_all
 DataPointDocument.destroy_all
-
-# allow sibling documents so that we can calculate statistics in an
-# eventually consistent manner
-StatisticDocument.bucket.allow_mult = true

@@ -34,3 +34,9 @@ class StatisticDocument
   end
 end
 
+# allow sibling documents so that we can calculate statistics in an
+# eventually consistent manner
+StatisticDocument.bucket.allow_mult = true
+# in order to prevent collisions in a failure scenario, pr + pw > N
+# and in this case N = 3, so:
+StatisticDocument.bucket.props = StatisticDocument.bucket.props.merge(:pr => 2, :pw => 2)
