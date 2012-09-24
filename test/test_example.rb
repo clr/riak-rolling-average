@@ -15,7 +15,8 @@ class TestExample < Test::Unit::TestCase
   end
 
   def test_concurrent_average
-    statistic = StatisticDocument.find('data_point_document_statistic')
+    statistic = StatisticDocument.new
+    statistic.key = 'data_point_document_statistic'
     assert_equal 5000,  statistic.count
     assert_equal 49.672, statistic.average.round(3)
   end

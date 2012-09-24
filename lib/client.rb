@@ -5,4 +5,8 @@ class Client
 
     @@id
   end
+
+  def self.all_ids(prefix)
+    (0..4).map{|i| "#{prefix}_local#{i}"}
+  end
 end
