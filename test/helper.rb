@@ -7,5 +7,4 @@ require File.join(ROOT_DIR,'lib','riak_rolling_average')
 
 # clear out all data
 Riak.disable_list_keys_warnings = true
-StatisticDocument.destroy_all
 DataPointDocument.destroy_all

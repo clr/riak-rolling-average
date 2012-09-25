@@ -2,6 +2,7 @@ require File.expand_path('../helper', __FILE__)
 
 class TestExample < Test::Unit::TestCase
   def setup
+    StatisticDocument.destroy_all
     pids = []
     # start some external clients to add values to the Riak server
     5.times do |t|
@@ -17,6 +18,7 @@ class TestExample < Test::Unit::TestCase
   def test_concurrent_average
     statistic = StatisticDocument.new
     statistic.key = 'data_point_document_statistic'
+    statistic.compute!
     assert_equal 5000,  statistic.count
     assert_equal 49.672, statistic.average.round(3)
   end
